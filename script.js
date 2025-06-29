@@ -1,44 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('calculator-form');
     const kulmaInput = document.getElementById('katon-kulma');
     const leveysInput = document.getElementById('rakennuksen-leveys');
-    const raystasInput = document.getElementById('raystaan-pituus');
+    const raystasPituusInput = document.getElementById('raystaan-pituus');
+    const raystasYlitysInput = document.getElementById('raystaan-ylitys');
+    
     const lapeTulosSpan = document.querySelector('#tulos span');
     const korkeusTulosSpan = document.querySelector('#katon-korkeus-tulos span');
-    const ylitysTulosSpan = document.querySelector('#raystaan-ylitys-tulos span');
+    
     const canvas = document.getElementById('katto-canvas');
     const ctx = canvas.getContext('2d');
     const resetButton = document.getElementById('reset-button');
     const downloadButton = document.getElementById('download-button');
     const scaleSlider = document.getElementById('scale-slider');
 
+    let lastModified = 'pituus'; // 'pituus' or 'ylitys'
+
     function calculateAndDraw() {
         const kulma = parseFloat(kulmaInput.value);
         const leveys = parseFloat(leveysInput.value);
-        const raystas = parseFloat(raystasInput.value);
-        const scale = parseFloat(scaleSlider.value);
+        let raystasPituus = parseFloat(raystasPituusInput.value);
+        let raystasYlitys = parseFloat(raystasYlitysInput.value);
 
-        if (isNaN(kulma) || isNaN(leveys) || isNaN(raystas) || kulma <= 0 || kulma >= 90 || leveys <= 0 || raystas < 0) {
+        if (isNaN(kulma) || isNaN(leveys) || kulma <= 0 || kulma >= 90 || leveys <= 0) {
             lapeTulosSpan.textContent = 'Virheelliset syötteet';
             korkeusTulosSpan.textContent = '';
-            ylitysTulosSpan.textContent = '';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
 
         const kulmaRad = kulma * (Math.PI / 180);
-        const lapePituus = (leveys / 2) / Math.cos(kulmaRad) + raystas;
+
+        if (lastModified === 'pituus') {
+            raystasYlitys = raystasPituus * Math.cos(kulmaRad);
+            raystasYlitysInput.value = raystasYlitys.toFixed(2);
+        } else if (lastModified === 'ylitys') {
+            raystasPituus = raystasYlitys / Math.cos(kulmaRad);
+            raystasPituusInput.value = raystasPituus.toFixed(2);
+        }
+
+        const lapePituus = (leveys / 2) / Math.cos(kulmaRad) + raystasPituus;
         const katonKorkeus = (leveys / 2) * Math.tan(kulmaRad);
-        const raystaanYlitys = Math.cos(kulmaRad) * raystas;
 
         lapeTulosSpan.textContent = `${lapePituus.toFixed(2)} cm`;
         korkeusTulosSpan.textContent = `${katonKorkeus.toFixed(2)} cm`;
-        ylitysTulosSpan.textContent = `${raystaanYlitys.toFixed(2)} cm`;
 
-        drawRoof(kulma, leveys, raystas, scale, katonKorkeus, raystaanYlitys);
+        drawRoof(kulma, leveys, raystasPituus, scaleSlider.value, katonKorkeus, raystasYlitys);
     }
 
-    function drawRoof(kulma, leveys, raystas, scale, katonKorkeus, raystaanYlitys) {
+    function drawRoof(kulma, leveys, raystasPituus, scale, katonKorkeus, raystasYlitys) {
         const canvasWidth = 600;
         const canvasHeight = 400;
         canvas.width = canvasWidth;
@@ -49,15 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const kulmaRad = kulma * (Math.PI / 180);
         const leveysM = leveys / 100;
-        const raystasM = raystas / 100;
-        const ylitysM = raystaanYlitys / 100;
+        const raystasPituusM = raystasPituus / 100;
+        const ylitysM = raystasYlitys / 100;
         const visualWallHeightM = 2.5;
 
         const buildingWidth = leveysM * scale;
         const roofRise = (katonKorkeus / 100) * scale;
         const wallHeight = visualWallHeightM * scale;
         const eavesHorizontal = ylitysM * scale;
-        const eavesVertical = Math.sin(kulmaRad) * (raystasM * scale);
+        const eavesVertical = Math.sin(kulmaRad) * (raystasPituusM * scale);
 
         const totalWidth = buildingWidth + 2 * eavesHorizontal;
         const totalHeight = wallHeight + roofRise;
@@ -79,28 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const startX = (canvasWidth - scaledWidth) / 2;
         const startY = (canvasHeight + scaledWallHeight - scaledRoofRise) / 2;
 
-        // --- Drawing --- 
-
-        // 1. Draw building base
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(startX, startY, scaledWidth, scaledWallHeight);
-
-        // 2. Define roof points
+        // Drawing implementation remains the same as the last correct version...
+        // ... (omitted for brevity, but it's the same logic with vertical offset)
         const harjaPiste = { x: startX + scaledWidth / 2, y: startY - scaledRoofRise };
         const oikeaSeinaYla = { x: startX + scaledWidth, y: startY };
         const oikeaRaystaanPaa = { x: startX + scaledWidth + scaledEavesHorizontal, y: startY + scaledEavesVertical };
 
-        // 3. Draw roof segments
-        // Left side for context
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX, startY, scaledWidth, scaledWallHeight);
         ctx.beginPath();
         ctx.moveTo(harjaPiste.x, harjaPiste.y);
         ctx.lineTo(startX - scaledEavesHorizontal, startY + scaledEavesVertical);
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Full slope (red)
         ctx.beginPath();
         ctx.moveTo(harjaPiste.x, harjaPiste.y);
         ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
@@ -108,52 +109,43 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Eave (green, offset vertically)
-        const verticalOffset = -15; // Vertical offset in pixels (negative is up)
-
+        const verticalOffset = -15;
         ctx.beginPath();
         ctx.moveTo(oikeaSeinaYla.x, oikeaSeinaYla.y + verticalOffset);
         ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y + verticalOffset);
-        ctx.strokeStyle = 'blue';
+        ctx.strokeStyle = 'green';
         ctx.lineWidth = 3;
         ctx.stroke();
-
-        // --- Labels and Dimension Lines ---
+        
+        // Labels
         ctx.font = '12px Arial';
-
-        // Building width
         ctx.fillStyle = 'black';
         ctx.textAlign = 'center';
         ctx.fillText(`${leveysM.toFixed(2)} m`, startX + scaledWidth / 2, startY + scaledWallHeight + 20);
-
-        // Angle
         ctx.textAlign = 'left';
         ctx.fillText(`${kulma}°`, harjaPiste.x + 10, harjaPiste.y + 30);
 
-        // Eaves length label (for the green line)
-        ctx.fillStyle = 'blue';
+        ctx.fillStyle = 'green';
         ctx.textAlign = 'center';
         ctx.save();
         const greenLineCenterX = oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaSeinaYla.x) / 2;
         const greenLineCenterY = oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaSeinaYla.y) / 2 + verticalOffset;
         ctx.translate(greenLineCenterX, greenLineCenterY);
-//        ctx.rotate(-kulmaRad);
-        ctx.fillText(`${raystasM.toFixed(2)} m`, 0, -15); // Adjust label position
+        ctx.rotate(-kulmaRad);
+        ctx.fillText(`${raystasPituusM.toFixed(2)} m`, 0, -5);
         ctx.restore();
 
-        // Roof height line and label
         const harjaX = startX + scaledWidth / 2;
         ctx.beginPath();
-        ctx.moveTo(harjaX, startY);
-        ctx.lineTo(harjaX, startY - scaledRoofRise);
+        ctx.moveTo(harjaX + 40, startY);
+        ctx.lineTo(harjaX + 40, startY - scaledRoofRise);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fillStyle = 'black';
         ctx.textAlign = 'left';
-        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX - 45, startY - scaledRoofRise / 2);
+        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX + 45, startY - scaledRoofRise / 2);
 
-        // Eaves horizontal projection (ylitys) line and label
         ctx.beginPath();
         ctx.moveTo(oikeaSeinaYla.x, oikeaRaystaanPaa.y + 20);
         ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y + 20);
@@ -168,11 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function reset() {
-        form.reset();
         kulmaInput.value = 30;
         leveysInput.value = 383;
-        raystasInput.value = 50;
+        raystasPituusInput.value = 50;
         scaleSlider.value = 75;
+        lastModified = 'pituus';
         calculateAndDraw();
     }
 
@@ -183,11 +175,27 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     }
 
-    form.addEventListener('input', calculateAndDraw);
+    raystasPituusInput.addEventListener('input', () => {
+        lastModified = 'pituus';
+        calculateAndDraw();
+    });
+
+    raystasYlitysInput.addEventListener('input', () => {
+        lastModified = 'ylitys';
+        calculateAndDraw();
+    });
+
+    kulmaInput.addEventListener('input', () => {
+        // Keep pituus fixed when angle changes
+        lastModified = 'pituus';
+        calculateAndDraw();
+    });
+
+    leveysInput.addEventListener('input', calculateAndDraw);
     scaleSlider.addEventListener('input', calculateAndDraw);
     resetButton.addEventListener('click', reset);
     downloadButton.addEventListener('click', downloadCanvas);
 
-    // Initial calculation and drawing
+    // Initial calculation
     calculateAndDraw();
 });
