@@ -3,10 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const leveysInput = document.getElementById('rakennuksen-leveys');
     const raystasPituusInput = document.getElementById('raystaan-pituus');
     const raystasYlitysInput = document.getElementById('raystaan-ylitys');
-    
+    const palkinKorkeusInput = document.getElementById('palkin-korkeus');
+
     const lapeTulosSpan = document.querySelector('#tulos span');
     const korkeusTulosSpan = document.querySelector('#katon-korkeus-tulos span');
-    
+    const katteenPituusTulosSpan = document.querySelector('#katteen-pituus-tulos span');
+
     const canvas = document.getElementById('katto-canvas');
     const ctx = canvas.getContext('2d');
     const resetButton = document.getElementById('reset-button');
@@ -20,10 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const leveys = parseFloat(leveysInput.value);
         let raystasPituus = parseFloat(raystasPituusInput.value);
         let raystasYlitys = parseFloat(raystasYlitysInput.value);
+        const palkinKorkeus = parseFloat(palkinKorkeusInput.value);
 
-        if (isNaN(kulma) || isNaN(leveys) || kulma <= 0 || kulma >= 90 || leveys <= 0) {
+        if (isNaN(kulma) || isNaN(leveys) || isNaN(palkinKorkeus) || kulma <= 0 || kulma >= 90 || leveys <= 0 || palkinKorkeus < 0) {
             lapeTulosSpan.textContent = 'Virheelliset syötteet';
             korkeusTulosSpan.textContent = '';
+            katteenPituusTulosSpan.textContent = '';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
@@ -40,13 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const lapePituus = (leveys / 2) / Math.cos(kulmaRad) + raystasPituus;
         const katonKorkeus = (leveys / 2) * Math.tan(kulmaRad);
+        
+        // Calculate the extra length for the top surface
+        const lisaPituus = palkinKorkeus * Math.tan(kulmaRad);
+        const katteenPituus = lapePituus + 2 * lisaPituus; // Assuming plumb cuts at both ends
 
         lapeTulosSpan.textContent = `${lapePituus.toFixed(2)} cm`;
         korkeusTulosSpan.textContent = `${katonKorkeus.toFixed(2)} cm`;
+        katteenPituusTulosSpan.textContent = `${katteenPituus.toFixed(2)} cm`;
 
         drawRoof(kulma, leveys, raystasPituus, scaleSlider.value, katonKorkeus, raystasYlitys);
     }
 
+    // The rest of the file (drawRoof, reset, event listeners) remains the same
+    // ... (omitted for brevity)
     function drawRoof(kulma, leveys, raystasPituus, scale, katonKorkeus, raystasYlitys) {
         const canvasWidth = 600;
         const canvasHeight = 400;
@@ -88,8 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const startX = (canvasWidth - scaledWidth) / 2;
         const startY = (canvasHeight + scaledWallHeight - scaledRoofRise) / 2;
 
-        // Drawing implementation remains the same as the last correct version...
-        // ... (omitted for brevity, but it's the same logic with vertical offset)
         const harjaPiste = { x: startX + scaledWidth / 2, y: startY - scaledRoofRise };
         const oikeaSeinaYla = { x: startX + scaledWidth, y: startY };
         const oikeaRaystaanPaa = { x: startX + scaledWidth + scaledEavesHorizontal, y: startY + scaledEavesVertical };
@@ -117,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Labels
         ctx.font = '12px Arial';
         ctx.fillStyle = 'black';
         ctx.textAlign = 'center';
@@ -159,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         kulmaInput.value = 30;
         leveysInput.value = 383;
         raystasPituusInput.value = 50;
+        palkinKorkeusInput.value = 10;
         scaleSlider.value = 75;
         lastModified = 'pituus';
         calculateAndDraw();
@@ -182,12 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     kulmaInput.addEventListener('input', () => {
-        // Keep pituus fixed when angle changes
         lastModified = 'pituus';
         calculateAndDraw();
     });
 
     leveysInput.addEventListener('input', calculateAndDraw);
+    palkinKorkeusInput.addEventListener('input', calculateAndDraw);
     scaleSlider.addEventListener('input', calculateAndDraw);
     resetButton.addEventListener('click', reset);
     downloadButton.addEventListener('click', downloadCanvas);
