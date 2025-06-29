@@ -67,6 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         ctx.save();
 
+        const margin = 40;
+        const drawingAreaWidth = canvasWidth - 2 * margin;
+        const drawingAreaHeight = canvasHeight - 2 * margin;
+
         const kulmaRad = kulma * (Math.PI / 180);
         const leveysM = leveys / 100;
         const raystasPituusM = raystasPituus / 100;
@@ -79,15 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const eavesHorizontal = ylitysM * scale;
         const eavesVertical = Math.sin(kulmaRad) * (raystasPituusM * scale);
 
-        const totalWidth = buildingWidth + 2 * eavesHorizontal;
-        const totalHeight = wallHeight + roofRise;
+        const totalGeomWidth = buildingWidth + 2 * eavesHorizontal;
+        const totalGeomHeight = wallHeight + roofRise;
 
         let drawingScale = 1;
-        if (totalWidth > canvasWidth * 0.9) {
-            drawingScale = (canvasWidth * 0.9) / totalWidth;
+        if (totalGeomWidth > drawingAreaWidth) {
+            drawingScale = drawingAreaWidth / totalGeomWidth;
         }
-        if (totalHeight > canvasHeight * 0.9) {
-            drawingScale = Math.min(drawingScale, (canvasHeight * 0.9) / totalHeight);
+        if (totalGeomHeight * drawingScale > drawingAreaHeight) {
+            drawingScale = Math.min(drawingScale, drawingAreaHeight / totalGeomHeight);
         }
 
         const scaledWidth = buildingWidth * drawingScale;
@@ -96,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const scaledEavesHorizontal = eavesHorizontal * drawingScale;
         const scaledEavesVertical = eavesVertical * drawingScale;
 
-        const startX = (canvasWidth - scaledWidth) / 2;
-        const startY = (canvasHeight + scaledWallHeight - scaledRoofRise) / 2;
+        const startX = margin + (drawingAreaWidth - scaledWidth) / 2;
+        const startY = margin + (drawingAreaHeight - scaledWallHeight + scaledRoofRise) / 2;
 
         const harjaPiste = { x: startX + scaledWidth / 2, y: startY - scaledRoofRise };
         const oikeaSeinaYla = { x: startX + scaledWidth, y: startY };
@@ -129,7 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.font = '12px Arial';
         ctx.fillStyle = 'black';
         ctx.textAlign = 'center';
-        ctx.fillText(`${leveysM.toFixed(2)} m`, startX + scaledWidth / 2, startY + scaledWallHeight + 20);
+        ctx.fillText(`${leveysM.toFixed(2)} m`, startX + scaledWidth / 2, startY + scaledWallHeight + 25);
+
         ctx.textAlign = 'left';
         ctx.fillText(`${kulma}°`, harjaPiste.x + 10, harjaPiste.y + 30);
 
