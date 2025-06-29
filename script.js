@@ -169,12 +169,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function reset() {
-        kulmaInput.value = 30;
+        kulmaInput.value = 20;
         leveysInput.value = 383;
-        raystasPituusInput.value = 50;
+        raystasYlitysInput.value = 30;
         palkinKorkeusInput.value = 10;
         scaleSlider.value = 75;
-        lastModified = 'pituus';
+        lastModified = 'ylitys';
         calculateAndDraw();
     }
 
