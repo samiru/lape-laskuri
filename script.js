@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const raystasInput = document.getElementById('raystaan-pituus');
     const lapeTulosSpan = document.querySelector('#tulos span');
     const korkeusTulosSpan = document.querySelector('#katon-korkeus-tulos span');
+    const ylitysTulosSpan = document.querySelector('#raystaan-ylitys-tulos span');
     const canvas = document.getElementById('katto-canvas');
     const ctx = canvas.getContext('2d');
     const resetButton = document.getElementById('reset-button');
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(kulma) || isNaN(leveys) || isNaN(raystas) || kulma <= 0 || kulma >= 90 || leveys <= 0 || raystas < 0) {
             lapeTulosSpan.textContent = 'Virheelliset syötteet';
             korkeusTulosSpan.textContent = '';
+            ylitysTulosSpan.textContent = '';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
@@ -27,14 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const kulmaRad = kulma * (Math.PI / 180);
         const lapePituus = (leveys / 2) / Math.cos(kulmaRad) + raystas;
         const katonKorkeus = (leveys / 2) * Math.tan(kulmaRad);
+        const raystaanYlitys = Math.cos(kulmaRad) * raystas;
 
         lapeTulosSpan.textContent = `${lapePituus.toFixed(2)} cm`;
         korkeusTulosSpan.textContent = `${katonKorkeus.toFixed(2)} cm`;
+        ylitysTulosSpan.textContent = `${raystaanYlitys.toFixed(2)} cm`;
 
-        drawRoof(kulma, leveys, raystas, scale, katonKorkeus);
+        drawRoof(kulma, leveys, raystas, scale, katonKorkeus, raystaanYlitys);
     }
 
-    function drawRoof(kulma, leveys, raystas, scale, katonKorkeus) {
+    function drawRoof(kulma, leveys, raystas, scale, katonKorkeus, raystaanYlitys) {
         const canvasWidth = 600;
         const canvasHeight = 400;
         canvas.width = canvasWidth;
@@ -46,14 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const kulmaRad = kulma * (Math.PI / 180);
         const leveysM = leveys / 100;
         const raystasM = raystas / 100;
+        const ylitysM = raystaanYlitys / 100;
         const visualWallHeightM = 2.5;
 
         const buildingWidth = leveysM * scale;
         const roofRise = (katonKorkeus / 100) * scale;
         const wallHeight = visualWallHeightM * scale;
-
-        // Calculate eaves projection correctly
-        const eavesHorizontal = Math.cos(kulmaRad) * (raystasM * scale);
+        const eavesHorizontal = ylitysM * scale;
         const eavesVertical = Math.sin(kulmaRad) * (raystasM * scale);
 
         const totalWidth = buildingWidth + 2 * eavesHorizontal;
@@ -76,63 +79,86 @@ document.addEventListener('DOMContentLoaded', () => {
         const startX = (canvasWidth - scaledWidth) / 2;
         const startY = (canvasHeight + scaledWallHeight - scaledRoofRise) / 2;
 
-        // Draw building base
+        // --- Drawing --- 
+
+        // 1. Draw building base
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
         ctx.strokeRect(startX, startY, scaledWidth, scaledWallHeight);
 
-        // Define roof points
+        // 2. Define roof points
         const harjaPiste = { x: startX + scaledWidth / 2, y: startY - scaledRoofRise };
-        const vasenRaystaanPaa = { x: startX - scaledEavesHorizontal, y: startY + scaledEavesVertical };
+        const oikeaSeinaYla = { x: startX + scaledWidth, y: startY };
         const oikeaRaystaanPaa = { x: startX + scaledWidth + scaledEavesHorizontal, y: startY + scaledEavesVertical };
 
-        // Draw roof structure
-        ctx.beginPath();
-        ctx.moveTo(vasenRaystaanPaa.x, vasenRaystaanPaa.y);
-        ctx.lineTo(harjaPiste.x, harjaPiste.y);
-        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
-        ctx.strokeStyle = '#333';
-        ctx.stroke();
-
-        // Highlight the calculated slope (lape)
+        // 3. Draw roof segments
+        // Left side for context
         ctx.beginPath();
         ctx.moveTo(harjaPiste.x, harjaPiste.y);
-        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
+        ctx.lineTo(startX - scaledEavesHorizontal, startY + scaledEavesVertical);
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Main slope (red)
+        ctx.beginPath();
+        ctx.moveTo(harjaPiste.x, harjaPiste.y);
+        ctx.lineTo(oikeaSeinaYla.x, oikeaSeinaYla.y);
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Dimensions and labels
-        ctx.fillStyle = 'black';
+        // Eave (green)
+        ctx.beginPath();
+        ctx.moveTo(oikeaSeinaYla.x, oikeaSeinaYla.y);
+        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
+        ctx.strokeStyle = 'green';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // --- Labels and Dimension Lines ---
         ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
 
         // Building width
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'center';
         ctx.fillText(`${leveysM.toFixed(2)} m`, startX + scaledWidth / 2, startY + scaledWallHeight + 20);
 
         // Angle
         ctx.textAlign = 'left';
         ctx.fillText(`${kulma}°`, harjaPiste.x + 10, harjaPiste.y + 30);
 
-        // Eaves label
+        // Eaves length label
+        ctx.fillStyle = 'green';
         ctx.textAlign = 'center';
         ctx.save();
-        ctx.translate(oikeaRaystaanPaa.x - 20, oikeaRaystaanPaa.y + 20);
+        ctx.translate(oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaSeinaYla.x) / 2, oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaSeinaYla.y) / 2 - 8);
         ctx.rotate(-kulmaRad);
         ctx.fillText(`${raystasM.toFixed(2)} m`, 0, 0);
         ctx.restore();
 
-        // Roof height label
+        // Roof height line and label
         const harjaX = startX + scaledWidth / 2;
         ctx.beginPath();
         ctx.moveTo(harjaX + 40, startY);
         ctx.lineTo(harjaX + 40, startY - scaledRoofRise);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX + 45, startY - scaledRoofRise / 2);
+
+        // Eaves horizontal projection (ylitys) line and label
+        ctx.beginPath();
+        ctx.moveTo(oikeaSeinaYla.x, oikeaRaystaanPaa.y + 20);
+        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y + 20);
         ctx.strokeStyle = 'blue';
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fillStyle = 'blue';
-        ctx.textAlign = 'left';
-        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX + 45, startY - scaledRoofRise / 2);
+        ctx.textAlign = 'center';
+        ctx.fillText(`${ylitysM.toFixed(2)} m`, oikeaSeinaYla.x + scaledEavesHorizontal / 2, oikeaRaystaanPaa.y + 35);
 
         ctx.restore();
     }
@@ -140,9 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function reset() {
         form.reset();
         kulmaInput.value = 30;
-        leveysInput.value = 800;
+        leveysInput.value = 383;
         raystasInput.value = 50;
-        scaleSlider.value = 50;
+        scaleSlider.value = 75;
         calculateAndDraw();
     }
 
