@@ -127,13 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.fillStyle = 'green';
         ctx.textAlign = 'center';
-        ctx.save();
         const greenLineCenterX = oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaSeinaYla.x) / 2;
         const greenLineCenterY = oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaSeinaYla.y) / 2 + verticalOffset;
-        ctx.translate(greenLineCenterX, greenLineCenterY);
-        ctx.rotate(-kulmaRad);
-        ctx.fillText(`${raystasPituusM.toFixed(2)} m`, 0, -5);
-        ctx.restore();
+        ctx.fillText(`${raystasPituusM.toFixed(2)} m`, greenLineCenterX, greenLineCenterY - 12);
 
         const harjaX = startX + scaledWidth / 2;
         ctx.beginPath();
