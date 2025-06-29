@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const kulmaInput = document.getElementById('katon-kulma');
     const leveysInput = document.getElementById('rakennuksen-leveys');
     const raystasInput = document.getElementById('raystaan-pituus');
-    const tulosSpan = document.querySelector('#tulos span');
+    const lapeTulosSpan = document.querySelector('#tulos span');
+    const korkeusTulosSpan = document.querySelector('#katon-korkeus-tulos span');
     const canvas = document.getElementById('katto-canvas');
     const ctx = canvas.getContext('2d');
     const resetButton = document.getElementById('reset-button');
@@ -17,19 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const scale = parseFloat(scaleSlider.value);
 
         if (isNaN(kulma) || isNaN(leveys) || isNaN(raystas) || kulma <= 0 || kulma >= 90 || leveys <= 0 || raystas < 0) {
-            tulosSpan.textContent = 'Virheelliset syötteet';
+            lapeTulosSpan.textContent = 'Virheelliset syötteet';
+            korkeusTulosSpan.textContent = '';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
 
         const kulmaRad = kulma * (Math.PI / 180);
         const lapePituus = (leveys / 2) / Math.cos(kulmaRad) + raystas;
-        tulosSpan.textContent = `${lapePituus.toFixed(2)} cm`;
+        const katonKorkeus = (leveys / 2) * Math.tan(kulmaRad);
 
-        drawRoof(kulma, leveys, raystas, scale);
+        lapeTulosSpan.textContent = `${lapePituus.toFixed(2)} cm`;
+        korkeusTulosSpan.textContent = `${katonKorkeus.toFixed(2)} cm`;
+
+        drawRoof(kulma, leveys, raystas, scale, katonKorkeus);
     }
 
-    function drawRoof(kulma, leveys, raystas, scale) {
+    function drawRoof(kulma, leveys, raystas, scale, katonKorkeus) {
         const canvasWidth = 600;
         const canvasHeight = 400;
         canvas.width = canvasWidth;
@@ -38,19 +43,20 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         ctx.save();
 
-        // Convert cm inputs to meters for scaling
+        const kulmaRad = kulma * (Math.PI / 180);
         const leveysM = leveys / 100;
         const raystasM = raystas / 100;
-        
-        // Visual representation uses a fixed height for the wall
-        const visualWallHeightM = 2.5; 
+        const visualWallHeightM = 2.5;
 
         const buildingWidth = leveysM * scale;
-        const eavesLength = raystasM * scale;
-        const roofRise = (leveysM / 2) * Math.tan(kulma * (Math.PI / 180)) * scale;
+        const roofRise = (katonKorkeus / 100) * scale;
         const wallHeight = visualWallHeightM * scale;
 
-        const totalWidth = buildingWidth + 2 * eavesLength;
+        // Calculate eaves projection correctly
+        const eavesHorizontal = Math.cos(kulmaRad) * (raystasM * scale);
+        const eavesVertical = Math.sin(kulmaRad) * (raystasM * scale);
+
+        const totalWidth = buildingWidth + 2 * eavesHorizontal;
         const totalHeight = wallHeight + roofRise;
 
         let drawingScale = 1;
@@ -62,9 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const scaledWidth = buildingWidth * drawingScale;
-        const scaledEaves = eavesLength * drawingScale;
         const scaledRoofRise = roofRise * drawingScale;
         const scaledWallHeight = wallHeight * drawingScale;
+        const scaledEavesHorizontal = eavesHorizontal * drawingScale;
+        const scaledEavesVertical = eavesVertical * drawingScale;
 
         const startX = (canvasWidth - scaledWidth) / 2;
         const startY = (canvasHeight + scaledWallHeight - scaledRoofRise) / 2;
@@ -74,18 +81,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 2;
         ctx.strokeRect(startX, startY, scaledWidth, scaledWallHeight);
 
+        // Define roof points
+        const harjaPiste = { x: startX + scaledWidth / 2, y: startY - scaledRoofRise };
+        const vasenRaystaanPaa = { x: startX - scaledEavesHorizontal, y: startY + scaledEavesVertical };
+        const oikeaRaystaanPaa = { x: startX + scaledWidth + scaledEavesHorizontal, y: startY + scaledEavesVertical };
+
         // Draw roof structure
         ctx.beginPath();
-        ctx.moveTo(startX - scaledEaves, startY);
-        ctx.lineTo(startX + scaledWidth / 2, startY - scaledRoofRise);
-        ctx.lineTo(startX + scaledWidth + scaledEaves, startY);
+        ctx.moveTo(vasenRaystaanPaa.x, vasenRaystaanPaa.y);
+        ctx.lineTo(harjaPiste.x, harjaPiste.y);
+        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
         ctx.strokeStyle = '#333';
         ctx.stroke();
 
         // Highlight the calculated slope (lape)
         ctx.beginPath();
-        ctx.moveTo(startX + scaledWidth / 2, startY - scaledRoofRise);
-        ctx.lineTo(startX + scaledWidth + scaledEaves, startY);
+        ctx.moveTo(harjaPiste.x, harjaPiste.y);
+        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 3;
         ctx.stroke();
@@ -100,11 +112,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Angle
         ctx.textAlign = 'left';
-        ctx.fillText(`${kulma}°`, startX + scaledWidth / 2 + 10, startY - scaledRoofRise / 2);
-        
-        // Eaves
+        ctx.fillText(`${kulma}°`, harjaPiste.x + 10, harjaPiste.y + 30);
+
+        // Eaves label
         ctx.textAlign = 'center';
-        ctx.fillText(`${raystasM.toFixed(2)} m`, startX + scaledWidth + scaledEaves / 2, startY - 10);
+        ctx.save();
+        ctx.translate(oikeaRaystaanPaa.x - 20, oikeaRaystaanPaa.y + 20);
+        ctx.rotate(-kulmaRad);
+        ctx.fillText(`${raystasM.toFixed(2)} m`, 0, 0);
+        ctx.restore();
+
+        // Roof height label
+        const harjaX = startX + scaledWidth / 2;
+        ctx.beginPath();
+        ctx.moveTo(harjaX + 40, startY);
+        ctx.lineTo(harjaX + 40, startY - scaledRoofRise);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = 'blue';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX + 45, startY - scaledRoofRise / 2);
 
         ctx.restore();
     }
