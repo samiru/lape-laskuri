@@ -100,19 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Main slope (red)
+        // Full slope (red)
         ctx.beginPath();
         ctx.moveTo(harjaPiste.x, harjaPiste.y);
-        ctx.lineTo(oikeaSeinaYla.x, oikeaSeinaYla.y);
+        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Eave (green)
+        // Eave (green, offset vertically)
+        const verticalOffset = -15; // Vertical offset in pixels (negative is up)
+
         ctx.beginPath();
-        ctx.moveTo(oikeaSeinaYla.x, oikeaSeinaYla.y);
-        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y);
-        ctx.strokeStyle = 'green';
+        ctx.moveTo(oikeaSeinaYla.x, oikeaSeinaYla.y + verticalOffset);
+        ctx.lineTo(oikeaRaystaanPaa.x, oikeaRaystaanPaa.y + verticalOffset);
+        ctx.strokeStyle = 'blue';
         ctx.lineWidth = 3;
         ctx.stroke();
 
@@ -128,13 +130,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.textAlign = 'left';
         ctx.fillText(`${kulma}°`, harjaPiste.x + 10, harjaPiste.y + 30);
 
-        // Eaves length label
-        ctx.fillStyle = 'green';
+        // Eaves length label (for the green line)
+        ctx.fillStyle = 'blue';
         ctx.textAlign = 'center';
         ctx.save();
-        ctx.translate(oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaSeinaYla.x) / 2, oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaSeinaYla.y) / 2 - 8);
-        ctx.rotate(-kulmaRad);
-        ctx.fillText(`${raystasM.toFixed(2)} m`, 0, 0);
+        const greenLineCenterX = oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaSeinaYla.x) / 2;
+        const greenLineCenterY = oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaSeinaYla.y) / 2 + verticalOffset;
+        ctx.translate(greenLineCenterX, greenLineCenterY);
+//        ctx.rotate(-kulmaRad);
+        ctx.fillText(`${raystasM.toFixed(2)} m`, 0, -15); // Adjust label position
         ctx.restore();
 
         // Roof height line and label
