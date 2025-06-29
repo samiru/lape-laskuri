@@ -144,14 +144,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Roof height line and label
         const harjaX = startX + scaledWidth / 2;
         ctx.beginPath();
-        ctx.moveTo(harjaX + 40, startY);
-        ctx.lineTo(harjaX + 40, startY - scaledRoofRise);
+        ctx.moveTo(harjaX, startY);
+        ctx.lineTo(harjaX, startY - scaledRoofRise);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fillStyle = 'black';
         ctx.textAlign = 'left';
-        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX + 45, startY - scaledRoofRise / 2);
+        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX - 45, startY - scaledRoofRise / 2);
 
         // Eaves horizontal projection (ylitys) line and label
         ctx.beginPath();
