@@ -136,13 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Building width line and label (left side)
         ctx.fillStyle = 'black';
         ctx.beginPath();
-        ctx.moveTo(startX - 30, startY); // Start at top-left of building, offset left
-        ctx.lineTo(startX - 30, startY + scaledWallHeight); // Draw down to bottom-left of building, offset left
+        //ctx.moveTo(startX - 30, startY); // Start at top-left of building, offset left
+        //ctx.lineTo(startX - 30, startY + scaledWallHeight); // Draw down to bottom-left of building, offset left
+        ctx.moveTo(startX, startY + scaledWallHeight + 20); // Start below bottom-left of building                                          │
+        ctx.lineTo(startX + scaledWidth, startY + scaledWallHeight + 20); // Draw to below bottom-right of building   
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
         ctx.stroke();
-        ctx.textAlign = 'right'; // Align text to the right of the line
-        ctx.fillText(`${leveysM.toFixed(2)} m`, startX - 35, startY + scaledWallHeight / 2); // Position text next to the line
+        //ctx.textAlign = 'right'; // Align text to the right of the line
+        //ctx.fillText(`${leveysM.toFixed(2)} m`, startX - 35, startY + scaledWallHeight / 2); // Position text next to the line
+        ctx.textAlign = 'center'; // Center text below the line                                                                             │
+        ctx.fillText(`${leveysM.toFixed(2)} m`, startX + scaledWidth / 2, startY + scaledWallHeight + 35); // Position text below the line
 
         // Angle
         ctx.textAlign = 'left';
