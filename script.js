@@ -130,41 +130,30 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 3;
         ctx.stroke();
         
-        // --- Labels and Dimension Lines ---
         ctx.font = '12px Arial';
-
-        // Building width line and label (left side)
         ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.moveTo(startX - 30, startY); // Start at top-left of building, offset left
-        ctx.lineTo(startX - 30, startY + scaledWallHeight); // Draw down to bottom-left of building, offset left
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.textAlign = 'right'; // Align text to the right of the line
-        ctx.fillText(`${leveysM.toFixed(2)} m`, startX - 35, startY + scaledWallHeight / 2); // Position text next to the line
+        ctx.textAlign = 'center';
+        ctx.fillText(`${leveysM.toFixed(2)} m`, startX + scaledWidth / 2, startY + scaledWallHeight + 25);
 
-        // Angle
         ctx.textAlign = 'left';
         ctx.fillText(`${kulma}°`, harjaPiste.x + 10, harjaPiste.y + 30);
 
-        // Eaves length label (green line)
         ctx.fillStyle = 'green';
         ctx.textAlign = 'center';
-        const greenLineCenterX = oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaRaystaanPaa.x) / 2;
-        const greenLineCenterY = oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaRaystaanPaa.y) / 2 + verticalOffset;
+        const greenLineCenterX = oikeaSeinaYla.x + (oikeaRaystaanPaa.x - oikeaSeinaYla.x) / 2;
+        const greenLineCenterY = oikeaSeinaYla.y + (oikeaRaystaanPaa.y - oikeaSeinaYla.y) / 2 + verticalOffset;
         ctx.fillText(`${raystasPituusM.toFixed(2)} m`, greenLineCenterX, greenLineCenterY - 12);
 
-        // Roof height line and label (moved to top-left of ridge)
+        const harjaX = startX + scaledWidth / 2;
         ctx.beginPath();
-        ctx.moveTo(harjaPiste.x, harjaPiste.y); // Start at ridge peak
-        ctx.lineTo(harjaPiste.x, startY); // Draw down to ridge base
+        ctx.moveTo(harjaX + 40, startY);
+        ctx.lineTo(harjaX + 40, startY - scaledRoofRise);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fillStyle = 'black';
-        ctx.textAlign = 'right'; // Align text to the right of the line
-        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaPiste.x - 5, harjaPiste.y - 10); // Position text above and slightly left of ridge peak
+        ctx.textAlign = 'left';
+        ctx.fillText(`${(katonKorkeus / 100).toFixed(2)} m`, harjaX + 45, startY - scaledRoofRise / 2);
 
         ctx.beginPath();
         ctx.moveTo(oikeaSeinaYla.x, oikeaRaystaanPaa.y + 20);
