@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lape Laskuri</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>Lape Laskuri</h1>
+            <form id="calculator-form">
+                <div class="input-group">
+                    <label for="katon-kulma">Katon kulma (°)</label>
+                    <input type="number" id="katon-kulma" value="30" step="any">
+                </div>
+                <div class="input-group">
+                    <label for="rakennuksen-leveys">Rakennuksen leveys (cm)</label>
+                    <input type="number" id="rakennuksen-leveys" value="800" step="any">
+                </div>
+                
+                <div class="input-group">
+                    <label for="raystaan-pituus">Räystään pituus (cm)</label>
+                    <input type="number" id="raystaan-pituus" value="50" step="any">
+                </div>
+            </form>
+            <div class="results">
+                <h2>Tulokset</h2>
+                <p id="kaava">Kaava: (Leveys / 2) / cos(Kulma) + Räystäs</p>
+                <p id="tulos">Lapepituus: <span></span></p>
+            </div>
+            <div class="buttons">
+                <button id="reset-button" type="button">Nollaa</button>
+                <button id="download-button" type="button">Lataa kuva (PNG)</button>
+            </div>
+             <div class="input-group">
+                    <label for="scale-slider">Mittakaava:</label>
+                    <input type="range" id="scale-slider" min="10" max="100" value="50">
+                </div>
+        </div>
+        <div class="visualization">
+            <canvas id="katto-canvas"></canvas>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

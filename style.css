@@ -1,0 +1,120 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: #f0f0f0;
+    padding: 20px;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.controls {
+    padding: 30px;
+    width: 40%;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+}
+
+.visualization {
+    width: 60%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+}
+
+canvas {
+    border: 1px solid #ccc;
+    background-color: #fdfdfd;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+h1 {
+    margin-top: 0;
+    color: #333;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.results {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.results h2 {
+    margin-top: 0;
+}
+
+.results #tulos span {
+    font-weight: bold;
+    color: #d9534f;
+}
+
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #0275d8;
+    color: white;
+    font-size: 16px;
+}
+
+button#reset-button {
+    background-color: #f0ad4e;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .controls, .visualization {
+        width: 100%;
+    }
+
+    .visualization {
+        padding-top: 0;
+    }
+}
