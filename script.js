@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const katonKorkeus = (leveys / 2) * Math.tan(kulmaRad);
         
         // Calculate the extra length for the top surface
-        const lisaPituus = palkinKorkeus / Math.tan(kulmaRad);
+        const lisaPituus = palkinKorkeus / Math.cos(kulmaRad);
         const katteenPituus = lapePituus + lisaPituus; // Assuming plumb cut at ridge, square at eave
 
         lapeTulosSpan.textContent = `${lapePituus.toFixed(2)} cm`;
